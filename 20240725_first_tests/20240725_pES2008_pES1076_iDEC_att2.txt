@@ -1,0 +1,62 @@
+Experiment: 20240725_pES2008_pES1076_iDEC_att2  Selected Filter: SYBR Green I / HRM Dye (465-510)
+Include	Color	Pos	Name	Cp	Concentration	Standard	Status
+True	255	A1	S2060 + SIAH1	15.16		0	
+True	255	A2	S2060 + SIAH1	15.50		0	
+True	255	A3	S2060 + SIAH1	15.91		0	
+True	255	A4	S2060 + SIAH1	15.94		0	
+True	255	A5	S2060 + SIAH1	15.64		0	
+True	255	A6	S2060 + SIAH1	15.66		0	
+True	255	B1	S2060 + SIAH2	19.23		0	
+True	255	B2	S2060 + SIAH2	19.48		0	
+True	255	B3	S2060 + SIAH2	18.74		0	
+True	255	B4	S2060 + SIAH2	18.71		0	
+True	255	B5	S2060 + SIAH2	18.50		0	
+True	255	B6	S2060 + SIAH2	18.69		0	
+True	255	C1	S2060 + TadA	26.46		0	
+True	255	C2	S2060 + TadA	26.95		0	
+True	255	C3	S2060 + TadA	27.05		0	
+True	255	C4	S2060 + TadA	26.89		0	
+True	255	C5	S2060 + TadA	26.77		0	
+True	255	C6	S2060 + TadA	26.58		0	
+True	255	D1	LB + SIAH1	23.64		0	
+True	255	D2	LB + SIAH1	23.64		0	
+True	255	D3	LB + SIAH1	23.51		0	
+True	255	D4	LB + SIAH1	23.56		0	
+True	255	D5	LB + SIAH1	23.69		0	
+True	255	D6	LB + SIAH1	23.53		0	
+True	255	E1	LB + SIAH2	25.90		0	
+True	255	E2	LB + SIAH2	25.78		0	
+True	255	E3	LB + SIAH2	25.86		0	
+True	255	E4	LB + SIAH2	26.08		0	
+True	255	E5	LB + SIAH2	25.98		0	
+True	255	E6	LB + SIAH2	26.16		0	
+True	255	F1	LB + TadA	31.16		0	
+True	255	F2	LB + TadA	31.31		0	
+True	255	F3	LB + TadA	31.15		0	
+True	255	F4	LB + TadA	31.04		0	
+True	255	F5	LB + TadA	31.28		0	
+True	255	F6	LB + TadA	30.89		0	
+True	255	G1	S2208 + SIAH1	36.20		0	
+True	255	G2	S2208 + SIAH1	  6.36		0	
+True	255	G3	S2208 + SIAH1	  6.81		0	
+True	255	G4	S2208 + SIAH1	  6.66		0	
+True	255	G5	S2208 + SIAH1	  6.33		0	
+True	255	G6	S2208 + SIAH1	  6.62		0	
+True	255	H1	S2208 + SIAH2	  6.00		0	
+True	255	H2	S2208 + SIAH2	  6.44		0	
+True	255	H3	S2208 + SIAH2	  6.00		0	
+True	255	H4	S2208 + SIAH2	  6.00		0	
+True	255	H5	S2208 + SIAH2	  7.49		0	
+True	255	H6	S2208 + SIAH2	  7.49		0	
+True	255	I1	S2060	27.50		0	
+True	255	I2	Sample 194	13.51		0	
+True	255	I3	LB	30.70		0	
+True	255	I4	LB	30.09		0	
+True	65280	I5	Sample 197			0	
+True	65280	I6	Sample 198			0	
+True	255	J1	MasterMix	29.84		0	
+True	255	J2	MasterMix	29.99		0	
+True	255	J3	MasterMix	29.59		0	
+True	65280	J4	Sample 220			0	
+True	65280	J5	Sample 221			0	
+True	65280	J6	Sample 222			0	
