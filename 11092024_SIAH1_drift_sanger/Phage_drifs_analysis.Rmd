@@ -1,0 +1,187 @@
+---
+title: "Assessing the drift in the pace starting library"
+author: "Kian Bigovic VIlli"
+date: "2024-09-20"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Load the required packages to do the analysis
+```{r, include=FALSE}
+library(tidyverse) # Dataframe management
+library(ggplot2) # Plotting
+library(sangerseqR) # Has a datatable wrapper for reading .abi files
+library(reshape2) # Long to wide and back
+```
+
+Load the sanger sequencing data 
+```{r}
+# List the files that have the ab1 files extension
+ab_files <- list.files(pattern = '..ab1',
+                       full.names = T, 
+                       path = 'raw_data/')
+
+# Load them into memory as a list for easy operation
+ab_data_list <- lapply(ab_files, readsangerseq)
+
+# Set names for the list according to filenames
+names(ab_data_list) <- gsub(pattern = "\\.\\.ab1", replacement = '', x = ab_files)
+
+# Define the nucleotide order in the was sangerseqR defines it
+nucleotide_order <- c('A','C','G','T')
+```
+# Chromatograms
+For starters lets see how do the chromatograms look for the data at hand. 
+```{r}
+# Call the sangerseqR function that plots out the chromatograms, export as .pdfs as they are toon large to plot in an RMarkdown
+# Create the directory for the chromatograms
+dir.create('chromatograms')
+# Define the chromatogram filenames
+chromatogram_files <- gsub(pattern = "\\.\\.ab1", replacement = '.pdf', x = basename(ab_files))
+
+mapply(ab_data_list, chromatogram_files, FUN = function(current_ab, outfile){
+  
+  sangerseqR::chromatogram(obj = current_ab, 
+                           width = 100, 
+                           height = 3,
+                           showcalls = "both",
+                           filename = paste(getwd(),'/chromatograms/',outfile, sep = ''))
+})
+
+```
+Visually we can see that later passages have some changes.
+
+# Number of uncalled positions
+For starters we can recover the number of positions that couldn't be called by the base calling software, we will exclude the first 50 and last 100-150ish positions
+```{r}
+# Go over the samples and count the number of positions called as N, preliminary idea, as a proxy of positions that can't be called
+lapply(ab_data_list, FUN = function(x){letterFrequency(x@primarySeq[c(50:1100)], letters = c('A','T','G','C','N'))})
+```
+Yeah they all seem to be perfectly nice base called, so we need to go a bit deeper.
+
+# The fraction of signal occupied by the called position
+Next rough look is to just calculate the amount of signal that is occupied by the called base (the one with max signal) and report it.
+```{r}
+largest.signal.fraction <- function(ab_object,
+                                    skip_first_n = 1,
+                                    last_pos = 1100){
+  # Takes in an ab1 object and for each position it spits out the fraction of signal occupied by the highest signal base
+  signal_df <- data.frame(ab_object@peakAmpMatrix[c(skip_first_n:last_pos),])
+  
+  # Remove the NAs
+  signal_df[is.na(signal_df)] <- 0
+  
+  # Calculate the fraction
+  fraction_max_at_pos <- do.call(pmax, signal_df) / rowSums(signal_df)
+  
+  return(fraction_max_at_pos)
+}
+
+# Loof the analysis across all files
+fraction_at_max <- lapply(ab_data_list, largest.signal.fraction)
+
+# Turn to a data.frame for better manipulatio
+fraction_at_max_df <- data.frame(do.call(cbind, fraction_at_max))
+
+# Name the samples
+colnames(fraction_at_max_df) <- c('Drift start', 'Passage 2', 'Passage 4', 'Passage 6', 'Passage 8')
+
+# Add the position information
+fraction_at_max_df$position <- c(1:nrow(fraction_at_max_df))
+
+# Melt into long format for plotting
+fraction_at_max_long <- melt(fraction_at_max_df, id.vars = 'position')
+
+# Standard violin plot
+ggplot(fraction_at_max_long, aes(x = variable, y = 1 - value))+
+  geom_violin()+
+  theme_bw()+
+  labs(x = 'Phage sample',
+       y = 'Fraction of mutated signal')
+
+# Standard box plot
+ggplot(fraction_at_max_long, aes(x = variable, y = 1 - value))+
+  geom_boxplot()+
+  theme_bw()+
+  labs(x = 'Phage sample',
+       y = 'Fraction of mutated signal')
+
+# Signal across positions with a smoothing line
+ggplot(fraction_at_max_long, aes(x = position, y = 1 - value, color = variable))+
+  geom_point(alpha = 0.2)+
+  geom_smooth(method="auto", se=TRUE, fullrange=FALSE, level=0.95, linewidth = 1)+
+  theme_bw()+
+  labs(x = 'Position in gene',
+       y = 'Fraction of mutated signal',
+       color = 'Phage sample')
+```
+
+Here we can see that:
+  a) the first 50bp and everything after 650 bp is variable across the board, as is expected of single primer Sanger sequencing.
+  b) that later passages have more signal coming from non-called bases
+
+Let's limit our final plots to the window that has has quality data (50 - 650)
+```{r}
+# Filter only the positions that we are interested in
+good_quality_fraction_at_max_long <- fraction_at_max_long%>%
+  filter(position >= 50 & position < 650)
+# create the output directory
+dir.create('plots')
+
+violin_plot <- ggplot(good_quality_fraction_at_max_long , 
+                      aes(x = variable, y = 1 - value))+
+                  geom_violin()+
+                  theme_bw()+
+                  labs(x = 'Phage sample',
+                       y = 'Fraction of mutated signal')
+violin_plot
+# Save .pdf and .png
+ggsave(plot = violin_plot,
+       filename = 'Violin_plot_quality_positions.png',
+       path = 'plots/')
+ggsave(plot = violin_plot,
+       filename = 'Violin_plot_quality_positions.pdf',
+       path = 'plots/')
+
+
+boxplot <- ggplot(good_quality_fraction_at_max_long , 
+                  aes(x = variable, y = 1 - value))+
+              geom_boxplot()+
+              theme_bw()+
+              labs(x = 'Phage sample',
+                   y = 'Fraction of mutated signal')
+boxplot
+# Save .pdf and .png
+ggsave(plot = boxplot,
+       filename = 'Boxplot_quality_positions.png',
+       path = 'plots/')
+ggsave(plot = boxplot,
+       filename = 'Boxplot_quality_positions.pdf',
+       path = 'plots/')
+
+
+signal_by_pos_plot <- ggplot(good_quality_fraction_at_max_long , 
+                             aes(x = position, y = 1 - value, color = variable))+
+                        geom_point(alpha = 0.2)+
+                        geom_smooth(method="auto", 
+                                    se=TRUE, 
+                                    fullrange=FALSE, 
+                                    level=0.95, 
+                                    linewidth = 1)+
+                        theme_bw()+
+                        labs(x = 'Position in gene',
+                             y = 'Fraction of mutated signal',
+                             color = 'Phage sample')
+signal_by_pos_plot
+# Save .pdf and .png
+ggsave(plot = signal_by_pos_plot,
+       filename = 'Signal_per_position_plot_quality_positions.png',
+       path = 'plots/')
+ggsave(plot = signal_by_pos_plot,
+       filename = 'Signal_per_position_plot_quality_positions.pdf',
+       path = 'plots/')
+```
+
